@@ -15,16 +15,22 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-                <action android:name="android.intent.action.PHONE_STATE" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+
         <receiver
             android:name=".MyReceiver"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PHONE_STATE" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
