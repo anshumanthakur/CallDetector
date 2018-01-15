@@ -1,23 +1,38 @@
 package com.example.anshuman.parse_1;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.widget.Toast;
 
 import java.util.Date;
+
+import static android.content.Context.LOCATION_SERVICE;
 
 public class MyReceiver extends BroadcastReceiver {
     private static Date callStartTime;
     private static boolean isIncoming;
     private static String savedNumber;
     private static int lastState = TelephonyManager.CALL_STATE_IDLE;
+    private LocationManager locationManager;
+    private LocationListener listener;
+    MainActivity main=new MainActivity();
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
         // TODO: This method is called when the BroadcastReceiver is receiving
         // an Intent broadcast.
+
         String action = intent.getAction();
         if (intent.getAction().equals("android.intent.action.NEW_OUTGOING_CALL")) {
             savedNumber = intent.getExtras().getString("android.intent.extra.PHONE_NUMBER");
@@ -41,6 +56,7 @@ public class MyReceiver extends BroadcastReceiver {
             //No change, debounce extras
             return;
         }
+        main= new MainActivity();
         switch (state) {
             case TelephonyManager.CALL_STATE_RINGING:
                 isIncoming = true;
@@ -56,7 +72,8 @@ public class MyReceiver extends BroadcastReceiver {
                     callStartTime = new Date();
                     Toast.makeText(context, "Outgoing Call Started" , Toast.LENGTH_SHORT).show();
                 }
-
+                //calling the location function
+                getLocation(context);
                 break;
             case TelephonyManager.CALL_STATE_IDLE:
                 //Went to idle-  this is the end of a call.  What type depends on previous state(s)
@@ -77,5 +94,47 @@ public class MyReceiver extends BroadcastReceiver {
                 break;
         }
         lastState = state;
+    }
+
+    public void getLocation(Context context){
+        locationManager=(LocationManager)context.getSystemService(LOCATION_SERVICE);
+        listener= new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if(location!=null){
+                    Log.e("latitude :", String.valueOf(location.getLatitude()));
+                    Log.e("long:", String.valueOf(location.getLongitude()));
+
+                }
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+
+            }
+        };
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 0, listener);
+
+
     }
 }
